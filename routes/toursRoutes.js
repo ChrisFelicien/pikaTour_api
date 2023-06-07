@@ -5,7 +5,7 @@ const router = express.Router();
 
 router
   .route("/")
-  .get(toursControllers.getSingleTour)
+  .get(toursControllers.getAllTours)
   .post(toursControllers.createTour);
 
 router
