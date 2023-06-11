@@ -1,8 +1,6 @@
 import ToursModels from "../models/toursModels.js";
-
-const asyncHandler = (fn) => {
-  return (req, res, next) => fn(req, res, next).catch(next);
-};
+import asyncHandler from "../utils/asyncHandler.js";
+import { createErrorMessage } from "../utils/CustomErrorMessage.js";
 
 const getAllTours = asyncHandler(async (req, res, next) => {
   const tours = await ToursModels.find();
@@ -15,7 +13,6 @@ const getAllTours = asyncHandler(async (req, res, next) => {
 });
 
 const createTour = asyncHandler(async (req, res, next) => {
-  console.log(req.body);
   const tour = await ToursModels.create(req.body);
 
   res.status(201).json({
@@ -26,6 +23,10 @@ const createTour = asyncHandler(async (req, res, next) => {
 
 const getSingleTour = asyncHandler(async (req, res, next) => {
   const tour = await ToursModels.findById(req.params.id);
+
+  if (!tour) {
+    return next(createErrorMessage("There is not a tour with this ID", 404));
+  }
 
   res.status(200).json({
     status: "success",
@@ -39,6 +40,10 @@ const updateTour = asyncHandler(async (req, res, next) => {
     runValidators: true,
   });
 
+  if (!tour) {
+    return next(createErrorMessage("There is not a tour with this ID", 404));
+  }
+
   res.status(200).json({
     status: "success",
     tour,
@@ -47,6 +52,10 @@ const updateTour = asyncHandler(async (req, res, next) => {
 
 const deleteTour = async (req, res, next) => {
   const tour = await ToursModels.findByIdAndDelete(req.params.id);
+
+  if (!tour) {
+    return next(createErrorMessage("There is not a tour with this ID", 404));
+  }
 
   res.status(200).json({
     tour: null,
