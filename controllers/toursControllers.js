@@ -3,11 +3,37 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { createErrorMessage } from "../utils/CustomErrorMessage.js";
 
 const getAllTours = asyncHandler(async (req, res, next) => {
-  const { featured, select, company, name, sort } = req.query;
+  const { featured, select, company, name, sort, digitFiltering } = req.query;
   const queyObject = {};
 
   if (featured) {
     queyObject.featured = featured === "true" ? true : false;
+  }
+
+  if (digitFiltering) {
+    // find({price: {$gt: 30}, rating: {$eq: 4.1}})
+    const operators = {
+      ">": "$gt",
+      ">=": "$gte",
+      "<": "$lt",
+      "<=": "$lte",
+      "=": "$eq",
+    };
+
+    const regex = /\b(<|<=|>|>=|=)\b/g;
+
+    //remplace all operators
+    let filters = digitFiltering.replace(
+      regex,
+      (match) => `-${operators[match]}-`
+    );
+
+    const options = ["rating", "price"];
+
+    filters.split(",").forEach((item) => {
+      const [field, operator, value] = item.split("-");
+      queyObject[field] = { [operator]: value };
+    });
   }
 
   if (company) {
@@ -21,7 +47,8 @@ const getAllTours = asyncHandler(async (req, res, next) => {
   let tempTours = ToursModels.find(queyObject);
 
   if (sort) {
-    tempTours = tempTours.sort(sort);
+    const querySort = sort.split(",").join(" ");
+    tempTours = tempTours.sort(querySort);
   } else {
     tempTours = tempTours.sort(`createdAt`);
   }
