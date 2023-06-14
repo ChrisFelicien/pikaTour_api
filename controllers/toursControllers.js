@@ -3,7 +3,34 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { createErrorMessage } from "../utils/CustomErrorMessage.js";
 
 const getAllTours = asyncHandler(async (req, res, next) => {
-  const tours = await ToursModels.find();
+  const { featured, company, name, sort } = req.query;
+  const queyObject = {};
+
+  if (featured) {
+    queyObject.featured = featured === "true" ? true : false;
+  }
+
+  if (company) {
+    queyObject.company = company;
+  }
+
+  if (name) {
+    queyObject.name = { $regex: `^${name}`, $options: "i" };
+  }
+
+  let tempTours = ToursModels.find(queyObject);
+
+  if (sort) {
+    tempTours = tempTours.sort(sort);
+  }
+
+  const limit = req.query.limit * 1 || 10;
+  const page = req.query.page * 1 || 1;
+  const skip = (page - 1) * limit;
+
+  tempTours = tempTours.skip(skip).limit(limit);
+
+  const tours = await tempTours;
 
   res.status(200).json({
     status: "Success",
