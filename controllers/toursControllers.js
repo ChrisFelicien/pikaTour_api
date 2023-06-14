@@ -3,7 +3,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { createErrorMessage } from "../utils/CustomErrorMessage.js";
 
 const getAllTours = asyncHandler(async (req, res, next) => {
-  const { featured, company, name, sort } = req.query;
+  const { featured, select, company, name, sort } = req.query;
   const queyObject = {};
 
   if (featured) {
@@ -22,6 +22,13 @@ const getAllTours = asyncHandler(async (req, res, next) => {
 
   if (sort) {
     tempTours = tempTours.sort(sort);
+  } else {
+    tempTours = tempTours.sort(`createdAt`);
+  }
+
+  if (select) {
+    const selectedFields = select.split(",").join(" ");
+    tempTours = tempTours.select(selectedFields);
   }
 
   const limit = req.query.limit * 1 || 10;
